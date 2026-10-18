@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
 use App\Listeners\LogDatabaseQueries;
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Menggunakan pagination Bootstrap 5
+        Paginator::useBootstrapFive();
+
+        // Audit query database
         DB::listen(function (QueryExecuted $query) {
             app(LogDatabaseQueries::class)->handle($query);
         });

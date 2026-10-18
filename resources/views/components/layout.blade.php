@@ -79,14 +79,30 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarMenu">
+                
                 <div class="navbar-nav ms-auto">
                     <a class="nav-link" href="{{ route('bukus.index') }}">
                         Daftar Buku
                     </a>
+
                     <a class="nav-link" href="{{ route('kategoris.index') }}">
                         Kategori
                     </a>
+
+                    <a class="nav-link" href="{{ route('peminjamans.index') }}">
+                        Peminjaman
+                    </a>
+
+                    @auth
+                        <form action="{{ route('logout') }}" method="POST" class="d-flex ms-lg-3">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-light btn-sm">
+                                Logout
+                            </button>
+                        </form>
+                    @endauth
                 </div>
+
             </div>
         </div>
     </nav>

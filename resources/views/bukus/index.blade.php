@@ -97,7 +97,7 @@
 
                                 <td>
                                     <span class="badge text-bg-light border">
-                                        {{ $buku->kategori->nama_kategori }}
+                                       {{ $buku->kategori?->nama_kategori ?? 'Tanpa Kategori' }}
                                     </span>
                                 </td>
 
