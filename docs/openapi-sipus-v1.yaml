@@ -1,0 +1,400 @@
+openapi: 3.0.3
+
+info:
+  title: SIPUS-Del API
+  description: |
+    Dokumentasi REST API Sistem Informasi Perpustakaan
+    Institut Teknologi Del (SIPUS-Del).
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:8000/api/v1
+    description: Local Development Server
+
+tags:
+  - name: Authentication
+    description: Autentikasi pengguna menggunakan Sanctum
+  - name: Buku
+    description: Pengelolaan data buku
+  - name: Peminjaman
+    description: Pengelolaan peminjaman dan pengembalian buku
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum Token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Terjadi kesalahan.
+
+    Buku:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 24
+        isbn:
+          type: string
+          example: "9786029876543"
+        judul:
+          type: string
+          example: Pemrograman REST API Laravel
+        penulis:
+          type: string
+          example: Pedro Simangunsong
+        penerbit:
+          type: string
+          example: Penerbit IT Del
+        tahun_terbit:
+          type: integer
+          example: 2026
+        kategori_id:
+          type: integer
+          example: 4
+        stok:
+          type: integer
+          example: 10
+        sinopsis:
+          type: string
+          nullable: true
+          example: Buku pembelajaran REST API Laravel.
+
+    BukuInput:
+      type: object
+      required:
+        - isbn
+        - judul
+        - penulis
+        - penerbit
+        - tahun_terbit
+        - kategori_id
+        - stok
+      properties:
+        isbn:
+          type: string
+          example: "9786029876543"
+        judul:
+          type: string
+          example: Pemrograman REST API Laravel
+        penulis:
+          type: string
+          example: Pedro Simangunsong
+        penerbit:
+          type: string
+          example: Penerbit IT Del
+        tahun_terbit:
+          type: integer
+          example: 2026
+        kategori_id:
+          type: integer
+          example: 4
+        stok:
+          type: integer
+          example: 10
+        sinopsis:
+          type: string
+          nullable: true
+          example: Buku pembelajaran REST API Laravel.
+
+    PeminjamanInput:
+      type: object
+      required:
+        - buku_id
+        - nim
+        - tanggal_pinjam
+      properties:
+        buku_id:
+          type: integer
+          example: 24
+        nim:
+          type: string
+          example: "12S24011"
+        tanggal_pinjam:
+          type: string
+          format: date
+          example: "2026-11-10"
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # AUTHENTICATION
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login pengguna
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@sipus-del.test
+                password:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Login berhasil dan token diberikan.
+        "401":
+          description: Email atau password tidak valid.
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Mendapatkan informasi pengguna yang sedang login
+      responses:
+        "200":
+          description: Informasi pengguna berhasil diambil.
+        "401":
+          description: Tidak terautentikasi.
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout pengguna
+      responses:
+        "200":
+          description: Logout berhasil.
+        "401":
+          description: Tidak terautentikasi.
+
+  # BUKU
+
+  /bukus:
+    get:
+      tags:
+        - Buku
+      summary: Mendapatkan daftar buku
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Daftar buku berhasil diambil.
+
+    post:
+      tags:
+        - Buku
+      summary: Menambahkan buku baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BukuInput"
+      responses:
+        "201":
+          description: Buku berhasil ditambahkan.
+        "401":
+          description: Tidak terautentikasi.
+        "422":
+          description: Validasi data gagal.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /bukus/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      tags:
+        - Buku
+      summary: Mendapatkan detail buku
+      security: []
+      responses:
+        "200":
+          description: Detail buku berhasil diambil.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Buku"
+        "404":
+          description: Buku tidak ditemukan.
+
+    put:
+      tags:
+        - Buku
+      summary: Memperbarui seluruh data buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BukuInput"
+      responses:
+        "200":
+          description: Buku berhasil diperbarui.
+        "401":
+          description: Tidak terautentikasi.
+        "422":
+          description: Validasi data gagal.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      tags:
+        - Buku
+      summary: Memperbarui sebagian data buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isbn:
+                  type: string
+                judul:
+                  type: string
+                penulis:
+                  type: string
+                penerbit:
+                  type: string
+                tahun_terbit:
+                  type: integer
+                kategori_id:
+                  type: integer
+                stok:
+                  type: integer
+                sinopsis:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: Sebagian data buku berhasil diperbarui.
+        "401":
+          description: Tidak terautentikasi.
+        "422":
+          description: Validasi data gagal.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+        - Buku
+      summary: Menghapus buku
+      responses:
+        "200":
+          description: Buku berhasil dihapus.
+        "401":
+          description: Tidak terautentikasi.
+        "404":
+          description: Buku tidak ditemukan.
+
+  /bukus/{id}/referensi-eksternal:
+    get:
+      tags:
+        - Buku
+      summary: Mendapatkan referensi buku dari Open Library
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Referensi eksternal berhasil diambil.
+        "404":
+          description: Buku tidak ditemukan.
+
+  # PEMINJAMAN
+
+  /peminjamans:
+    get:
+      tags:
+        - Peminjaman
+      summary: Mendapatkan daftar peminjaman
+      responses:
+        "200":
+          description: Daftar peminjaman berhasil diambil.
+        "401":
+          description: Tidak terautentikasi.
+
+    post:
+      tags:
+        - Peminjaman
+      summary: Membuat peminjaman buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeminjamanInput"
+      responses:
+        "201":
+          description: Peminjaman buku berhasil.
+        "401":
+          description: Tidak terautentikasi.
+        "422":
+          description: Stok buku habis atau data tidak valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /peminjamans/{id}/kembalikan:
+    patch:
+      tags:
+        - Peminjaman
+      summary: Mengembalikan buku
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Buku berhasil dikembalikan.
+        "401":
+          description: Tidak terautentikasi.
+        "404":
+          description: Peminjaman tidak ditemukan.
