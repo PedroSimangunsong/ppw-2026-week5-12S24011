@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Soap\LibrarySoapController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\KategoriController;
@@ -10,6 +11,17 @@ use App\Http\Controllers\PeminjamanController;
 Route::get('/', function () {
     return redirect()->route('bukus.index');
 });
+
+// SOAP Web Service (tanpa autentikasi)
+Route::get('/soap/sipus.wsdl', [
+    LibrarySoapController::class,
+    'wsdl'
+]);
+
+Route::post('/soap/sipus', [
+    LibrarySoapController::class,
+    'checkClearance'
+]);
 
 // Login hanya untuk pengguna yang belum login
 Route::middleware('guest')->group(function () {
@@ -30,11 +42,7 @@ Route::middleware('auth')->group(function () {
     // Pengujian cookie
     Route::get('/cookie', function () {
         return response('Cookie SIPUS-Del berhasil diuji.')
-            ->cookie(
-                'sipus_preferensi',
-                'tampilan_ungu',
-                60
-            );
+            ->cookie('sipus_preferensi', 'tampilan_ungu', 60);
     })->name('cookie.test');
 
     // Statistik buku
@@ -53,7 +61,6 @@ Route::middleware('auth')->group(function () {
         'statistik'
     ])->name('peminjamans.statistik');
 
-    
     // Halaman daftar dan form peminjaman
     Route::get('/peminjamans', function () {
         $bukus = \App\Models\Buku::orderBy('judul')->get();
@@ -64,7 +71,6 @@ Route::middleware('auth')->group(function () {
 
         return view('peminjamans.index', compact('bukus', 'peminjamans'));
     })->name('peminjamans.index');
-
 
     // Peminjaman buku
     Route::post('/peminjamans', [
